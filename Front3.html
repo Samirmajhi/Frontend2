@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sortable Filterable Table</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav {
+      display: flex;
+      background-color: #004080;
+      padding: 12px 20px;
+      gap: 20px;
+      align-items: center;
+      color: white;
+    }
+
+    nav > div {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 35px;
+      left: 0;
+      background-color: white;
+      color: black;
+      border: 1px solid #ccc;
+      min-width: 150px;
+      z-index: 1000;
+    }
+
+    .dropdown-content div {
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .dropdown-content div:hover {
+      background-color: #eee;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    #table-section {
+      padding: 20px;
+      display: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th input {
+      width: 100%;
+      padding: 5px;
+    }
+
+    .sortable:hover {
+      background-color: #f0f0f0;
+      cursor: pointer;
+    }
+
+    .asc::after {
+      content: " ▲";
+    }
+
+    .desc::after {
+      content: " ▼";
+    }
+
+    @media screen and (max-width: 768px) {
+      nav {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div>Home</div>
+    <div>About</div>
+    <div class="dropdown">
+      <div>Dropdown1</div>
+      <div class="dropdown-content">
+        <div onclick="showTable('Item A1')">Item A1</div>
+        <div onclick="showTable('Item A2')">Item A2</div>
+      </div>
+    </div>
+    <div class="dropdown">
+      <div>Dropdown2</div>
+      <div class="dropdown-content">
+        <div onclick="showTable('Item B1')">Item B1</div>
+        <div onclick="showTable('Item B2')">Item B2</div>
+      </div>
+    </div>
+    <div>Contact</div>
+  </nav>
+
+  <div id="table-section">
+    <table id="data-table">
+      <thead>
+        <tr>
+          <th><input type="text" onkeyup="filterTable(0)" placeholder="Filter AppCode"></th>
+          <th><input type="text" onkeyup="filterTable(1)" placeholder="Filter Adm Head"></th>
+          <th><input type="text" onkeyup="filterTable(2)" placeholder="Filter Group Head"></th>
+          <th><input type="text" onkeyup="filterTable(3)" placeholder="Filter Domain Head"></th>
+          <th><input type="text" onkeyup="filterTable(4)" placeholder="Filter ADM Entity"></th>
+          <th><input type="text" onkeyup="filterTable(5)" placeholder="Filter Owner Entity"></th>
+          <th><input type="text" onkeyup="filterTable(6)" placeholder="Filter Owner"></th>
+          <th><input type="text" onkeyup="filterTable(7)" placeholder="Filter Continuity Level"></th>
+        </tr>
+        <tr>
+          <th class="sortable" onclick="sortTable(0)">AppCode</th>
+          <th class="sortable" onclick="sortTable(1)">Adm Head</th>
+          <th class="sortable" onclick="sortTable(2)">Group Head</th>
+          <th class="sortable" onclick="sortTable(3)">Domain Head</th>
+          <th class="sortable" onclick="sortTable(4)">ADM Entity</th>
+          <th class="sortable" onclick="sortTable(5)">Owner Entity</th>
+          <th class="sortable" onclick="sortTable(6)">Owner</th>
+          <th class="sortable" onclick="sortTable(7)">Continuity Level</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const data = {
+      'Item A1': [
+        { appcode: 'A001', adm: 'Alice', group: 'Group1', domain: 'DomainX', adm_entity: 'ADM-X', owner_entity: 'OE-1', owner: 'John', level: 'High' },
+        { appcode: 'A002', adm: 'Bob', group: 'Group2', domain: 'DomainY', adm_entity: 'ADM-Y', owner_entity: 'OE-2', owner: 'Emma', level: 'Medium' },
+        { appcode: 'A003', adm: 'Carol', group: 'Group1', domain: 'DomainZ', adm_entity: 'ADM-Z', owner_entity: 'OE-3', owner: 'Max', level: 'Low' },
+        { appcode: 'A004', adm: 'Dan', group: 'Group3', domain: 'DomainX', adm_entity: 'ADM-X', owner_entity: 'OE-1', owner: 'Lily', level: 'High' },
+        { appcode: 'A005', adm: 'Eva', group: 'Group2', domain: 'DomainY', adm_entity: 'ADM-Y', owner_entity: 'OE-4', owner: 'Nina', level: 'Medium' },
+      ],
+      'Item A2': [
+        { appcode: 'A101', adm: 'Zed', group: 'GroupX', domain: 'DomainA', adm_entity: 'ADM-1', owner_entity: 'OE-10', owner: 'Adam', level: 'High' },
+        { appcode: 'A102', adm: 'Ray', group: 'GroupY', domain: 'DomainB', adm_entity: 'ADM-2', owner_entity: 'OE-11', owner: 'Rick', level: 'Low' },
+      ],
+      'Item B1': [
+        { appcode: 'B001', adm: 'Tom', group: 'GroupM', domain: 'DomainN', adm_entity: 'ADM-T', owner_entity: 'OE-5', owner: 'Paul', level: 'Medium' },
+        { appcode: 'B002', adm: 'Jerry', group: 'GroupN', domain: 'DomainO', adm_entity: 'ADM-J', owner_entity: 'OE-6', owner: 'Sam', level: 'High' },
+      ],
+      'Item B2': [
+        { appcode: 'B101', adm: 'Harry', group: 'GroupZ', domain: 'DomainC', adm_entity: 'ADM-H', owner_entity: 'OE-7', owner: 'Clark', level: 'Low' },
+      ],
+    };
+
+    let currentData = [];
+
+    function showTable(key) {
+      currentData = data[key] || [];
+      renderTable(currentData);
+      document.getElementById('table-section').style.display = 'block';
+    }
+
+    function renderTable(dataArray) {
+      const tableBody = document.getElementById('table-body');
+      tableBody.innerHTML = '';
+      dataArray.forEach(item => {
+        const row = `
+          <tr>
+            <td>${item.appcode}</td>
+            <td>${item.adm}</td>
+            <td>${item.group}</td>
+            <td>${item.domain}</td>
+            <td>${item.adm_entity}</td>
+            <td>${item.owner_entity}</td>
+            <td>${item.owner}</td>
+            <td>${item.level}</td>
+          </tr>
+        `;
+        tableBody.innerHTML += row;
+      });
+    }
+
+    function filterTable(colIndex) {
+      const input = document.querySelectorAll("thead tr input")[colIndex].value.toLowerCase();
+      const rows = document.querySelectorAll("#table-body tr");
+      rows.forEach(row => {
+        const cell = row.cells[colIndex];
+        if (cell.textContent.toLowerCase().includes(input)) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+
+    let sortDirection = Array(8).fill(null); // Track sort direction per column
+
+    function sortTable(colIndex) {
+      const headers = document.querySelectorAll(".sortable");
+      headers.forEach((header, index) => {
+        header.classList.remove("asc", "desc");
+        if (index === colIndex) {
+          sortDirection[colIndex] = sortDirection[colIndex] === 'asc' ? 'desc' : 'asc';
+          header.classList.add(sortDirection[colIndex]);
+        } else {
+          sortDirection[index] = null;
+        }
+      });
+
+      currentData.sort((a, b) => {
+        const keys = ['appcode', 'adm', 'group', 'domain', 'adm_entity', 'owner_entity', 'owner', 'level'];
+        const valA = a[keys[colIndex]].toLowerCase();
+        const valB = b[keys[colIndex]].toLowerCase();
+
+        if (valA < valB) return sortDirection[colIndex] === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDirection[colIndex] === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      renderTable(currentData);
+    }
+  </script>
+
+</body>
+                                                                                                  </html>
