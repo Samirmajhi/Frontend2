@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Advanced Filterable Table</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    nav {
+      background-color: #0077cc;
+      padding: 10px;
+      color: white;
+      display: flex;
+      gap: 20px;
+    }
+    .dropdown {
+      position: relative;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: white;
+      color: black;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+      min-width: 150px;
+      z-index: 1;
+    }
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+    .dropdown-content div {
+      padding: 10px;
+      cursor: pointer;
+    }
+    .dropdown-content div:hover {
+      background-color: #f0f0f0;
+    }
+    #table-section {
+      padding: 20px;
+      display: none;
+      overflow-x: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div>Home</div>
+    <div>About</div>
+    <div class="dropdown">
+      <div>Dropdown1</div>
+      <div class="dropdown-content">
+        <div onclick="showTable('Item A1')">Item A1</div>
+        <div onclick="showTable('Item A2')">Item A2</div>
+      </div>
+    </div>
+    <div class="dropdown">
+      <div>Dropdown2</div>
+      <div class="dropdown-content">
+        <div onclick="showTable('Item B1')">Item B1</div>
+        <div onclick="showTable('Item B2')">Item B2</div>
+      </div>
+    </div>
+    <div>Contact</div>
+  </nav>
+
+  <div id="table-section">
+    <table id="data-table">
+      <thead>
+        <tr>
+          <th><input onkeyup="filterTable(0)" placeholder="AppCode"></th>
+          <th><input onkeyup="filterTable(1)" placeholder="Adm Head"></th>
+          <th><input onkeyup="filterTable(2)" placeholder="Group Head"></th>
+          <th><input onkeyup="filterTable(3)" placeholder="Domain Head"></th>
+          <th><input onkeyup="filterTable(4)" placeholder="ADM Entity"></th>
+          <th><input onkeyup="filterTable(5)" placeholder="Owner Entity"></th>
+          <th><input onkeyup="filterTable(6)" placeholder="Owner"></th>
+          <th><input onkeyup="filterTable(7)" placeholder="Continuity Level"></th>
+        </tr>
+        <tr>
+          <th>AppCode</th>
+          <th>Adm Head</th>
+          <th>Group Head</th>
+          <th>Domain Head</th>
+          <th>ADM Entity</th>
+          <th>Owner Entity</th>
+          <th>Owner</th>
+          <th>Continuity Level</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <!-- Rows will be injected here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const itemsMap = {
+      'Item A1': [
+        { appcode: 'A001', adm: 'Alice', group: 'Group A', domain: 'Domain X', adm_entity: 'ADM-X', owner_entity: 'OE-1', owner: 'John', level: 'High' },
+        { appcode: 'A002', adm: 'Bob', group: 'Group B', domain: 'Domain Y', adm_entity: 'ADM-Y', owner_entity: 'OE-2', owner: 'Jane', level: 'Medium' },
+        { appcode: 'A003', adm: 'Chris', group: 'Group A', domain: 'Domain Z', adm_entity: 'ADM-Z', owner_entity: 'OE-3', owner: 'Emma', level: 'Low' },
+        { appcode: 'A004', adm: 'David', group: 'Group C', domain: 'Domain X', adm_entity: 'ADM-W', owner_entity: 'OE-1', owner: 'Liam', level: 'Medium' },
+        { appcode: 'A005', adm: 'Eva', group: 'Group D', domain: 'Domain Y', adm_entity: 'ADM-V', owner_entity: 'OE-4', owner: 'Sophia', level: 'High' }
+      ],
+      'Item A2': [...], // Add more dummy data as needed
+      'Item B1': [...],
+      'Item B2': [...]
+    };
+
+    function showTable(key) {
+      const data = itemsMap[key] || [];
+      const tbody = document.getElementById("table-body");
+      const section = document.getElementById("table-section");
+      tbody.innerHTML = '';
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.appcode}</td>
+          <td>${row.adm}</td>
+          <td>${row.group}</td>
+          <td>${row.domain}</td>
+          <td>${row.adm_entity}</td>
+          <td>${row.owner_entity}</td>
+          <td>${row.owner}</td>
+          <td>${row.level}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      section.style.display = 'block';
+    }
+
+    function filterTable(colIndex) {
+      const input = document.querySelectorAll("thead tr:first-child input")[colIndex];
+      const filter = input.value.toLowerCase();
+      const rows = document.querySelectorAll("#table-body tr");
+
+      rows.forEach(row => {
+        const cell = row.getElementsByTagName("td")[colIndex];
+        const text = cell.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? "" : "none";
+      });
+    }
+  </script>
+
+</body>
+  </html>
