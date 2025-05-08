@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Navigation + Table Filter & Sort</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+
+    nav {
+      background-color: #007acc;
+      padding: 10px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    nav > div {
+      position: relative;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      padding: 8px 12px;
+      display: block;
+      cursor: pointer;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: white;
+      color: black;
+      box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+
+    .dropdown-content a {
+      padding: 8px 12px;
+      display: block;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+
+    th.sortable {
+      cursor: pointer;
+      background-color: #f0f0f0;
+    }
+
+    input[type="text"] {
+      margin: 5px;
+      padding: 5px;
+    }
+
+    .filters {
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">About</a>
+
+    <div class="dropdown">
+      <a href="#">Dropdown 1</a>
+      <div class="dropdown-content">
+        <a href="#" data-category="category1">Category 1</a>
+        <a href="#" data-category="category2">Category 2</a>
+      </div>
+    </div>
+
+    <div class="dropdown">
+      <a href="#">Dropdown 2</a>
+      <div class="dropdown-content">
+        <a href="#" data-category="category3">Category 3</a>
+        <a href="#" data-category="category4">Category 4</a>
+      </div>
+    </div>
+
+    <a href="#">Contact</a>
+  </nav>
+
+  <div class="container">
+    <div class="filters" id="filters"></div>
+    <table id="dataTable" style="display:none;">
+      <thead>
+        <tr id="tableHeader"></tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const sampleData = [
+      {
+        appCode: "APP001",
+        admHead: "John Doe",
+        groupHead: "Alice",
+        domainHead: "Bob",
+        admEntity: "Entity A",
+        ownerEntity: "Owner A",
+        owner: "Mike",
+        continuityLevel: "High"
+      },
+      {
+        appCode: "APP002",
+        admHead: "Jane Smith",
+        groupHead: "Charlie",
+        domainHead: "Eve",
+        admEntity: "Entity B",
+        ownerEntity: "Owner B",
+        owner: "Sarah",
+        continuityLevel: "Medium"
+      },
+      {
+        appCode: "APP003",
+        admHead: "Robert",
+        groupHead: "Diana",
+        domainHead: "Clark",
+        admEntity: "Entity C",
+        ownerEntity: "Owner C",
+        owner: "Leo",
+        continuityLevel: "Low"
+      },
+      {
+        appCode: "APP004",
+        admHead: "Emily",
+        groupHead: "Tom",
+        domainHead: "Jerry",
+        admEntity: "Entity D",
+        ownerEntity: "Owner D",
+        owner: "Anna",
+        continuityLevel: "High"
+      },
+      {
+        appCode: "APP005",
+        admHead: "Kevin",
+        groupHead: "Lara",
+        domainHead: "Bruce",
+        admEntity: "Entity E",
+        ownerEntity: "Owner E",
+        owner: "Steve",
+        continuityLevel: "Medium"
+      }
+    ];
+
+    const keys = [
+      "appCode", "admHead", "groupHead", "domainHead", 
+      "admEntity", "ownerEntity", "owner", "continuityLevel"
+    ];
+
+    let currentData = [];
+
+    function renderFilters(data) {
+      const filterDiv = document.getElementById("filters");
+      filterDiv.innerHTML = "";
+      keys.forEach(key => {
+        const input = document.createElement("input");
+        input.setAttribute("type", "text");
+        input.setAttribute("placeholder", `Filter ${key}`);
+        input.addEventListener("input", () => applyFilters(data));
+        input.dataset.key = key;
+        filterDiv.appendChild(input);
+      });
+    }
+
+    function applyFilters(data) {
+      const filters = document.querySelectorAll('#filters input');
+      let filteredData = [...data];
+      filters.forEach(input => {
+        const key = input.dataset.key;
+        const value = input.value.toLowerCase();
+        if (value) {
+          filteredData = filteredData.filter(item => 
+            item[key].toLowerCase().includes(value)
+          );
+        }
+      });
+      renderTable(filteredData);
+    }
+
+    function renderTable(data) {
+      const table = document.getElementById("dataTable");
+      table.style.display = "table";
+
+      const header = document.getElementById("tableHeader");
+      const body = document.getElementById("tableBody");
+
+      header.innerHTML = "";
+      body.innerHTML = "";
+
+      keys.forEach((key, index) => {
+        const th = document.createElement("th");
+        th.classList.add("sortable");
+        th.textContent = key;
+        th.addEventListener("click", () => sortTable(index));
+        header.appendChild(th);
+      });
+
+      data.forEach(item => {
+        const row = document.createElement("tr");
+        keys.forEach(key => {
+          const td = document.createElement("td");
+          td.textContent = item[key];
+          row.appendChild(td);
+        });
+        body.appendChild(row);
+      });
+
+      currentData = data;
+    }
+
+    function sortTable(colIndex) {
+      const key = keys[colIndex];
+      let sorted = [...currentData].sort((a, b) => {
+        return a[key].localeCompare(b[key]);
+      });
+      currentData = sorted;
+      renderTable(currentData);
+    }
+
+    const dropdownLinks = document.querySelectorAll('.dropdown-content a');
+    dropdownLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const category = e.target.getAttribute('data-category');
+        loadTable(category);
+      });
+    });
+
+    function loadTable(category) {
+      // You can customize the sample data per category
+      renderFilters(sampleData);
+      renderTable(sampleData);
+    }
+  </script>
+
+</body>
+  </html>
